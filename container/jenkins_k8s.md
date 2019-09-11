@@ -307,7 +307,7 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.3.3+new+cloud.png)
 
-   配置完毕后，点击**右下方**的**test connection**，如果出现 Connection test successful 的提示信息证� Jenkins 已经可以和 Kubernetes 系统正常通信了；如果测试不成功，请仔细检查参数是否正确
+   配置完毕后，点击**右下方**的**test connection**，如果出现 Connection test successful 的提示信息证 Jenkins 已经可以和 Kubernetes 系统正常通信了；如果测试不成功，请仔细检查参数是否正确
 
    > 其中server名可以通过 kubectl get svc -n somens 得到默认somens namespace下的所有service
 
