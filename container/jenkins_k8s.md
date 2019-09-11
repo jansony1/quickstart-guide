@@ -1,4 +1,4 @@
- on AWS实现基于jenkins pipeline的CI/CD
+k8s on aws 实现基于jenkins pipeline的CI/CD
 
 ## 目的
 
@@ -698,7 +698,7 @@ $ kubectl apply -f .
 
 ## 基于Github Webhook的multi-branch触发模式
 
-##集成GITLAB private repo
+## 集成GITLAB private repo
 
 
 
