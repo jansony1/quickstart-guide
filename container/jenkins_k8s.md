@@ -1,4 +1,4 @@
-k8s on aws 实现基于jenkins pipeline的CI/CD
+# k8s on aws 实现基于jenkins pipeline的CI/CD
 
 ## 目的
 
@@ -21,7 +21,7 @@ k8s on aws 实现基于jenkins pipeline的CI/CD
 
 ##	前提条件
 
-1. 已部署k8s集群 [部署连接](https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO) ，并且设置了国内docker源
+1. 已部署k8s集群([部署连接])(https://github.com/nwcdlabs/kops-cn/blob/master/README_en.md#HOWTO) ，并且设置了国内docker源
 2. Clone 此repo到本地
 
 ## 步骤一:  安装jenkins server于k8s之上（直接部署）
@@ -34,6 +34,7 @@ $ cd container/asset
 **如果是北京区**, 请执行
 ```
 $ sed -i 's/cn-northwest-1/cn-north-1/g' sc.yaml
+$ sed -i 's/cn-northwest-1/cn-north-1/g' jenkins.yaml
 ```
 一键部署
 ```
