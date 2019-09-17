@@ -218,8 +218,7 @@ $ kubectl apply -f .
    ```
    image:  182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
    ```
-   该镜像为基于[jenkins官方进行制作](https://github.com/jenkinsci/docker), **唯一**的修改为初始化过程中的Plugin改为了国内Plugin源
-   
+   该镜像为基于[jenkins官方进行制作](https://github.com/jenkinsci/docker), **唯一**的修改为初始化过程中的Plugin源改为了国内Plugin源，更多定制化需求可基于上述链接进行实现。
    
 5. 配置jenkins server 和 job运行的namespace
 
@@ -254,7 +253,7 @@ $ kubectl apply -f .
    此时通过读取应用日志获取jenkins的初始化密码
 
    ```
-   $ kubectl logs jenkins-server-8658b744fc-9mnmq -nkube-jenkins
+   $ kubectl logs jenkins-server-*** -nkube-jenkins
    ```
 
    找到如下语句
@@ -268,7 +267,7 @@ $ kubectl apply -f .
    This may also be found at: /var/jenkins_home/secrets/initialAdminPassword
    ```
 
-   其中加注释处即为初始化密码，建议记录在记事本中
+   其中**加注释处即为初始化密码**，建议记录在记事本中
 
 8. 查看访问地址
 
@@ -283,7 +282,7 @@ $ kubectl apply -f .
 
 1. jenkins 初始化
 
-   根据上文中的负载均衡器地址，在浏览器中访问页面**负载均衡地址:8080**, 进入界面后，在其中输入在步骤一.7中得到的初始密码，并点击next；进入后点击 **install suggested plugin**，进入下图界面：
+   根据上文中的负载均衡器地址，在浏览器中访问页面**负载均衡地址:8080**, 进入界面后，在其中输入在**步骤一.7**中得到的初始密码，并点击next；进入后点击 **install suggested plugin**，进入下图界面：
 
    ![jenkins 初始化](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.1+jenkins+init.png)
 
@@ -317,29 +316,26 @@ $ kubectl apply -f .
 
    配置完毕后，点击**右下方**的**test connection**，如果出现 Connection test successful 的提示信息证 Jenkins 已经可以和 Kubernetes 系统正常通信了；如果测试不成功，请仔细检查参数是否正确
 
-   > 其中server名可以通过 kubectl get svc -n somens 得到默认somens namespace下的所有service
+   > 其中service名可以通过 kubectl get svc -n somens 得到默认somens namespace下的所有service
 
    
 
 4. 配置jenkins slave pod参数
-
-   配置jenkins-slave pod如下图所示, 其中由于插件自身的问题，Name一定要写为[jnlp](https://stackoverflow.com/questions/42124958/connection-dropped-for-jenkins-slave-on-kubernetes)
+   配置jenkins-slave pod如下图所示, 其中由于插件自身的问题，**Name一定要写为[jnlp](https://stackoverflow.com/questions/42124958/connection-dropped-for-jenkins-slave-on-kubernetes)**
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.1+pod+config.png)
 
-​       其中需要注意的是上图的**Labels**以及其下一栏的 **only build jobs ...**, 两者组合起来表示，后续再执行jenkins任务的时候，只有指定**node labels**为 **jenkins-slave-k8s**才会利用kubernetes pod 的模式执行jenkins job
+   其中需要注意的是上图的**Labels**以及其下一栏的 **only build jobs ...**, 两者组合起来表示，后续再执行jenkins任务的时候，只有指定**node labels**为**jenkins-slave-k8s**才会利用kubernetes pod的模式执行jenkins job
+ 
+   > 如果在之后运行job的过程中出现镜像一直无法pull下来的状况，可以更改上面的docker image为182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-slave:jnlp6
+   
+   接下来，因为jenkins slave执行在docker之中，而slave之中又要执行docker，kubectl等操作，所以我们需要把宿主机（对应的worker）上的环境mount到docker之中，配置如下
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.2+volume+mount.png)
 
-> 如果在之后运行job的过程中出现镜像一直无法pull下来的状况，可以更改上面的docker image为 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-slave:jnlp6
+   > 挂载docker.sock是为了和docker.daemon进行通信
+   > 挂载.kube是为了获取执行kubectl指令的配置参数
 
-​       接下来，因为jenkins slave执行在docker之中，而slave之中又要执行docker，kubectl等操作，所以我们需要把宿主机（对应的worker）上的环境mount到docker之中，配置如下
-
-​		![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.2+volume+mount.png)
-
-> 挂载docker.sock是为了和docker.daemon进行通信
->
-> 挂载.kube是为了获取执行kubectl指令的配置参数
-
-​      此时点击左下角的save，整个jenkins与k8s的集成便完成了  
+   此时点击**左下角的save**，整个jenkins与k8s的集成便完成了  
 
 5. 简单测试
 
@@ -347,7 +343,7 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.1+freestyle.png)
 
-    配置选择kubernetes pod为jenkins job的执行节点，**此处的label一定要与步骤二.4中写的label进行匹配**
+   配置选择kubernetes pod为jenkins job的执行节点，**此处的label一定要与步骤二.4中写的label进行匹配**
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.2+label.png)
 
@@ -355,7 +351,7 @@ $ kubectl apply -f .
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.3+shell.png)
 
-   往下滑动到build step，选择下图中的**Execut Shell**选项
+   在输入框中输入如下
 
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.4+shell+script.png)
 
@@ -364,13 +360,14 @@ $ kubectl apply -f .
    > docker info 是为了查看能否成功调用docker daemon
    > kubectl get pod 是为了查看是否调用宿主机的.kube配置文件，从而连接apiserver
 
-​      点击保存后，此时处于项目的界面，点击右侧的build now，开始构建
+   点击保存后，此时处于项目的界面，点击右侧的build now，开始构建
 
    > 如果构建过程中一直出现，worker offline等job pending的状况，可以从jenkins -> Manage Jenkins -> System log处查看是否有错误提示
 
-​      构建成功后，build hisotry处会出现如下的标识（蓝色）
+   构建成功后，build hisotry处会出现如下的标识（蓝色）
 
-​     ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.5+build+success.png)
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.5.5+build+success.png)
+
 
 6. 点击上图中的2，或者任意数字，然后点击console output 得到类似如下的输出
 
@@ -667,9 +664,7 @@ $ kubectl apply -f .
    jenkins-url:8080/github-webhook/
    ```
 
-   另外本实验中只配置了基于Push Event的触发，如果有基于Merge等请求的触发，可以点击上图中触发Events里面的 
-
-   **Let me select individual event**
+   另外本实验中只配置了基于Push Event的触发，如果有基于Merge等请求的触发，可以点击上图中触发Events里面的 **Let me select individual event**
 
 3. 测试
 
