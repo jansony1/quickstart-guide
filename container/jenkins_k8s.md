@@ -4,7 +4,7 @@
 
 ​    本项目主要目的为在k8s on AWS上实现基于jenkins pipeline的CI/CD ，其中会利用到Github Private为托管代码仓库，ECR（AWS 托管镜像仓库）为私有镜像仓库，k8s pod作为jenkins slave，jenkins pipeline作为流程引擎
 
-##项目架构
+## 项目架构
 
 ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/whole_pic.png)
 
@@ -15,8 +15,8 @@
 3. Jenkins master分配kubernetes slave作为项目的执行环境，同时k8s启动slave pod
 4. Jenkins slave pod运行pipeline中指定的任务第一步从私有代码仓库拉下代码
 5. Jenkins slave pod执行代码测试，测试完毕后依据代码仓库格式，构造镜像
-6. jenkins slave pod推送镜像到ECR上
-7. jenkins slave pod执行应用服务的更新任务
+6. Jenkins slave pod推送镜像到ECR上
+7. Jenkins slave pod执行应用服务的更新任务
 8. 应用服务pod所在节点拉取相应的镜像，完成镜像的替换，即应用的更新
 
 ##	前提条件
@@ -163,7 +163,7 @@ $ kubectl apply -f .
          serviceAccountName: jenkins-server
          containers:
          - name: jenkin-server
-           image:  jenkins/jenkins:lts
+           image:  182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
            imagePullPolicy: IfNotPresent
            
            ....
@@ -205,7 +205,7 @@ $ kubectl apply -f .
 
    ```
     nodeSelector:
-           failure-domain.beta.kubernetes.io/zone: failure-domain.beta.kubernetes.io/zone=cn-northwest-1a
+           failure-domain.beta.kubernetes.io/zone: cn-northwest-1a
    ```
 
    因为**EBS卷并不能跨可用区**，所以我们需要**限定对应的PV(EBS卷)在同一可用区**，这样当jenkins master出现故障的时候，可以实现可用区内jenkins master的自动恢复。
@@ -214,6 +214,13 @@ $ kubectl apply -f .
    >
    > 如果要实现jenkins数据的自动快照，可参考[Snapshot](https://github.com/lab798/aws-auto-snapshot)
 
+   另外本实验用的镜像为
+   ```
+   image:  182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
+   ```
+   该镜像为基于[jenkins官方进行制作](https://github.com/jenkinsci/docker), **唯一**的修改为初始化过程中的Plugin改为了国内Plugin源
+   
+   
 5. 配置jenkins server 和 job运行的namespace
 
    ```
