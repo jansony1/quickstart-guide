@@ -15,6 +15,10 @@ spec:
       - name: jenkin-server
         image: 182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
         imagePullPolicy: Always
+        command: ["/bin/sh", "-c"]
+        args:
+         - echo starting;
+           /sbin/tini -- /usr/local/bin/jenkins.sh;
         ports:
         - containerPort: 8080
           name: web

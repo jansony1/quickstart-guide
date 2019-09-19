@@ -218,7 +218,13 @@ $ kubectl apply -f .
    ```
    image:  182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-update-repo:v1
    ```
-   该镜像为基于[jenkins官方进行制作](https://github.com/jenkinsci/docker), **唯一**的修改为初始化过程中的Plugin源改为了国内Plugin源，更多定制化需求可基于上述链接进行实现。
+   该镜像为基于[jenkins官方进行制作](https://github.com/jenkinsci/docker), **其中，做了以下修改的部分**
+   
+   * Jenkins Plugin[源换为了国内清华源](http://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json)
+   * 预安装了Jenkins的推荐安装插件
+   * 预安装了**Kubernetes**，**AWS SDK**，**AWS ECR** 插件
+   
+   **建议生产环境，可基于企业自身需求进行定制化**
    
 5. 配置jenkins server 和 job运行的namespace
 
@@ -286,19 +292,7 @@ $ kubectl apply -f .
 
    ![jenkins 初始化](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.1+jenkins+init.png)
 
-   安装完毕后会指引用户创建第一个admin 用户，输入相关用户名和密码点击保存和继续，从而进入jenkins主界面
-
-2. kubernetes插件安装
-
-   如下图红框所示，点击Manage Jenkins -> Mange Plugins
-
-   ![kubernetes插件](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.2.1+kubernetes+plugin+enter.png)
-
-   在插件页面，如下图所示搜索kubernetes，并选择对应选项，然后点击install
-
-   ![安装jenkins](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.2+kubernetes+plugin.png)
-
-   等待安装完毕后，浏览器输入**jenkins url:8080/restart**，重启jenkins
+   安装完毕后会指引用户创建第一个admin 用户，输入相关用户名和密码点击保存和继续，从而进入jenkins主界面. **此处因为预先安装了所列插件，会很快完成** 
 
 3. 配置jenkins于kubernetes集成
 
@@ -326,7 +320,7 @@ $ kubectl apply -f .
    ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/2.4.1+pod+config.png)
 
    其中需要注意的是上图的**Labels**以及其下一栏的 **only build jobs ...**, 两者组合起来表示，后续再执行jenkins任务的时候，只有指定**node labels**为**jenkins-slave-k8s**才会利用kubernetes pod的模式执行jenkins job
- 
+
    > 如果在之后运行job的过程中出现镜像一直无法pull下来的状况，可以更改上面的docker image为182335798701.dkr.ecr.cn-northwest-1.amazonaws.com.cn/jenkins-slave:jnlp6
    
    接下来，因为jenkins slave执行在docker之中，而slave之中又要执行docker，kubectl等操作，所以我们需要把宿主机（对应的worker）上的环境mount到docker之中，配置如下
@@ -410,15 +404,7 @@ $ kubectl apply -f .
    $ git push -u origin master
    ```
 
-2. 安装插件
-
-   因为本实验要用到AWS ECR这样的托管镜像仓库，对于托管镜像仓库需要利用aws的AKSK进行签名发送请求，才能够进行正常 ` docker pull ` 等相关操作。所以首先我们要进入**Manage Jenkins -> Mange Plugins**，安装如下插件
-   **IAM 插件**
-   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.1+install+plugin.png)
-   ​ **ECR 插件**![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.1.1+ECR.png)
-   ​   安装完毕后，web界面执行Jenkins-url:8080/restart操作
-
-3. 秘钥配置
+2. 秘钥配置
 
    本实验中，访问私有的Github Repo以及AWS ECR都需要配置相关的秘钥，首先我们先配置两个秘钥
 
@@ -441,9 +427,13 @@ $ kubectl apply -f .
 
    **ECR 秘钥配置**
 
-   对于ECR相关的访问秘钥，实际上就是在配置对应的AKSK
+   对于ECR相关的访问秘钥，**实际上就是在配置对应的AKSK**；同理Add Credentials，选项如下
 
-4. Pipeline项目逻辑
+   ![](https://zhenyu-github.s3-us-west-2.amazonaws.com/quick-start/3.2.2+AKSK.png)
+
+   填写具有足够ECR读写权限角色对应的[AKSK](https://docs.aws.amazon.com/zh_cn/AmazonECR/latest/userguide/ECR_IAM_policies.html)，点击保存
+
+3. Pipeline项目逻辑
 
    对于Jenkins Pipeline的逻辑，首先可以参考下图
 
@@ -454,7 +444,7 @@ $ kubectl apply -f .
     - **Node**：在jenkins中具体执行任务的为Jenkins slave，而node的概念即是指定slave的工作环境，比如本实验，我们设定了kubernetes pod作为工作环境；那么当我们在设定jenkins 具体任务时，指定node的label为:jenkins-slave-k8s，即可利用kubernetes pod运行具体的任务
     - **Stage**: 每个Jenkins Slave执行的任务可以分为多个顺序的Stage，比如先代码下载Stage，编译Stage，测试Stage,部署Stage等等
 
-5. Pipeline项目配置
+4. Pipeline项目配置
 
    进入下图界面，创建新的Pipeline项目
 
@@ -585,7 +575,7 @@ $ kubectl apply -f .
 
    **最后点击保存**，从而保存项目 
 
-6. Pipeline项目测试
+5. Pipeline项目测试
 
    点击**Build Now**后，我们会发现如下图所示，服务已经开始构建
 
